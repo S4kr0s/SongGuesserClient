@@ -48,8 +48,7 @@ const Game = () => {
             player.addListener('ready', ({ device_id }) => {
                 console.log("Player activated with Device ID:", device_id);
                 deviceIdRef.current = device_id;
-                
-                // Activate the player when it's ready
+                setIsPlayerReady(true);
                 activatePlayer(device_id, token);
             });
 
