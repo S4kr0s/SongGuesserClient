@@ -13,6 +13,7 @@ const Game = () => {
     const deviceIdRef = useRef(null);
     const intervalRef = useRef(null);
     const revealTimeoutRef = useRef([]);
+    const [isPlayerReady, setIsPlayerReady] = useState(false);
 
     useEffect(() => {
         const loadTracks = () => {
