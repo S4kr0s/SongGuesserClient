@@ -10,14 +10,15 @@ const SongPool = () => {
     useEffect(() => {
         axios.get('https://songguesserserver.onrender.com/api/users')
             .then(response => {
+                console.log("Fetched users:", response.data);
                 const formattedUsers = response.data.map(user => ({
-                    id: user.spotifyId,
-                    name: user.displayName || user.spotifyId
+                    id: user.id,
+                    name: user.name
                 }));
                 setUsers(formattedUsers);
             })
             .catch(error => console.error("Error fetching users:", error.response?.data || error.message));
-    }, [navigate]);
+    }, []);
 
     const handleCreatePool = () => {
         if (!selectedUser || selectedUser.length === 0) return;
