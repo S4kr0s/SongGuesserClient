@@ -8,7 +8,7 @@ const SongPool = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/users')
+        axios.get('https://songguesserserver.onrender.com/api/users')
             .then(response => {
                 const formattedUsers = response.data.map(user => ({
                     id: user.spotifyId,
@@ -24,7 +24,7 @@ const SongPool = () => {
 
         console.log("Creating pool with users:", selectedUser);
 
-        axios.post('http://localhost:5000/api/create-pool', { userIds: selectedUser })
+        axios.post('https://songguesserserver.onrender.com/api/create-pool', { userIds: selectedUser })
             .then(response => {
                 console.log("Pool created:", response.data);
                 navigate('/game', { state: { pool: response.data } });
