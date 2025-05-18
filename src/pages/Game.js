@@ -31,7 +31,14 @@ const Game = () => {
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
 
-        if (window.Spotify) {
+        if (!token) {
+            console.error("No access token found, redirecting...");
+            return;
+        }
+
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            console.log("Spotify Web Playback SDK is ready");
+
             const player = new window.Spotify.Player({
                 name: 'Song Guesser',
                 getOAuthToken: cb => cb(token),
@@ -39,26 +46,45 @@ const Game = () => {
             });
 
             player.addListener('ready', ({ device_id }) => {
-                console.log("Player activated with Device ID", device_id);
+                console.log("Player activated with Device ID:", device_id);
                 deviceIdRef.current = device_id;
+                
+                // Activate the player when it's ready
+                activatePlayer(device_id, token);
             });
 
-            player.addListener('initialization_error', ({ message }) => console.error(message));
-            player.addListener('authentication_error', ({ message }) => console.error(message));
-            player.addListener('account_error', ({ message }) => console.error(message));
-            player.addListener('playback_error', ({ message }) => console.error(message));
+            player.addListener('initialization_error', ({ message }) => console.error("Initialization Error:", message));
+            player.addListener('authentication_error', ({ message }) => console.error("Authentication Error:", message));
+            player.addListener('account_error', ({ message }) => console.error("Account Error:", message));
+            player.addListener('playback_error', ({ message }) => console.error("Playback Error:", message));
 
-            player.connect();
+            player.connect().then(success => {
+                if (success) {
+                    console.log("Player successfully connected");
+                } else {
+                    console.error("Player failed to connect");
+                }
+            });
+
             playerRef.current = player;
-        }
+        };
     }, []);
 
     const activatePlayer = async (device_id, token) => {
         try {
+            console.log("Activating player with device ID:", device_id);
             await axios.put(
                 'https://api.spotify.com/v1/me/player',
-                { device_ids: [device_id], play: false },
-                { headers: { Authorization: `Bearer ${token}` } }
+                {
+                    device_ids: [device_id],
+                    play: false
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
             );
             console.log("Player activated");
         } catch (error) {
