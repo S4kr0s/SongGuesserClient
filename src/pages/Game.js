@@ -36,9 +36,7 @@ const Game = () => {
             return;
         }
 
-        window.onSpotifyWebPlaybackSDKReady = () => {
-            console.log("Spotify Web Playback SDK is ready");
-
+        const loadSpotifyPlayer = () => {
             const player = new window.Spotify.Player({
                 name: 'Song Guesser',
                 getOAuthToken: cb => cb(token),
@@ -67,6 +65,13 @@ const Game = () => {
 
             playerRef.current = player;
         };
+
+        // Check if the Spotify SDK is already loaded
+        if (window.Spotify) {
+            loadSpotifyPlayer();
+        } else {
+            window.onSpotifyWebPlaybackSDKReady = loadSpotifyPlayer;
+        }
     }, []);
 
     const activatePlayer = async (device_id, token) => {
