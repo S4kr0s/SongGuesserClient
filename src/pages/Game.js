@@ -31,37 +31,27 @@ const Game = () => {
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
 
-        if (!token) {
-            console.error("No access token found, redirecting...");
-            navigate('/song-pool');
-            return;
-        }
-
-        window.onSpotifyWebPlaybackSDKReady = () => {
+        if (window.Spotify) {
             const player = new window.Spotify.Player({
-                name: 'Spotify Game Player',
+                name: 'Song Guesser',
                 getOAuthToken: cb => cb(token),
                 volume: 0.5
             });
 
             player.addListener('ready', ({ device_id }) => {
-                console.log('Ready with Device ID', device_id);
-                playerRef.current = player;
+                console.log("Player activated with Device ID", device_id);
                 deviceIdRef.current = device_id;
             });
 
-            player.addListener('not_ready', ({ device_id }) => {
-                console.log('Device ID has gone offline', device_id);
-            });
+            player.addListener('initialization_error', ({ message }) => console.error(message));
+            player.addListener('authentication_error', ({ message }) => console.error(message));
+            player.addListener('account_error', ({ message }) => console.error(message));
+            player.addListener('playback_error', ({ message }) => console.error(message));
 
             player.connect();
-        };
-
-        const script = document.createElement('script');
-        script.src = 'https://sdk.scdn.co/spotify-player.js';
-        script.async = true;
-        document.body.appendChild(script);
-    }, [navigate]);
+            playerRef.current = player;
+        }
+    }, []);
 
     const activatePlayer = async (device_id, token) => {
         try {
@@ -86,15 +76,34 @@ const Game = () => {
             return;
         }
 
-        if (!device_id || !currentTrack) {
-            console.error("No active device or track available");
+        if (!device_id) {
+            console.error("No active device available");
+            return;
+        }
+
+        if (!currentTrack) {
+            console.error("No track available");
             return;
         }
 
         try {
             // Transfer playback to this device
-            await activatePlayer(device_id, token);
+            console.log("Activating player...");
+            await axios.put(
+                'https://api.spotify.com/v1/me/player',
+                {
+                    device_ids: [device_id],
+                    play: false
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
 
+            console.log("Starting playback...");
             // Start playback
             await axios.put(
                 'https://api.spotify.com/v1/me/player/play',
