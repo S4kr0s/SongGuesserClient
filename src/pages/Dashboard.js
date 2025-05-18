@@ -7,6 +7,19 @@ const Dashboard = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const accessToken = params.get('accessToken');
+        const refreshToken = params.get('refreshToken');
+
+        if (accessToken) {
+            // Store tokens in localStorage
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('refreshToken', refreshToken);
+
+            // Remove the tokens from the URL
+            window.history.replaceState({}, document.title, '/dashboard');
+        }
+
         const token = localStorage.getItem('accessToken');
 
         if (!token) {
@@ -34,18 +47,18 @@ const Dashboard = () => {
 
     return (
         <div className="game-container">
-            <img 
-                src={user.images[0]?.url || "/default-profile.png"} 
-                alt="Profile" 
-                className="profile-picture" 
-            />
+            <img src={user.images[0]?.url || "/default-profile.png"} alt="Profile" className="profile-picture" />
             <h1 className="game-title">Welcome, {user.display_name}!</h1>
 
             <div className="button-group">
                 <button onClick={() => navigate('/song-pool')} className="button">
                     Create Song Pool
                 </button>
-                <button onClick={() => localStorage.removeItem('accessToken') && navigate('/')} className="button" style={{ backgroundColor: '#e74c3c' }}>
+                <button onClick={() => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    navigate('/');
+                }} className="button" style={{ backgroundColor: '#e74c3c' }}>
                     Logout
                 </button>
             </div>
